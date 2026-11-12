@@ -42,7 +42,7 @@ Figure options (see the TUNABLE PARAMETERS block)
     share one y-axis; GEE line runs from the first to the last bin centre.
 
 Usage
-    python roi_motivation_analysis.py
+    bout_and_preference_analysis_time.py
     (prompts for the bout folder, output folder, group file and bin length)
 
 Requires: numpy, pandas, scipy, matplotlib, statsmodels (and openpyxl for .xlsx)
@@ -1746,7 +1746,7 @@ def main():
     """Interactive entry point: ask for the input/output paths and bin length, then run the pipeline."""
     print("=" * 70)
     print(
-        " SFPT motivation analysis (v6: pref y-axis -1..+1; shared duration y-axis; GEE line spans bin centres)"
+        " SFPT motivation analysis (bout and preference)"
     )
     print("=" * 70)
     while True:
@@ -1755,7 +1755,7 @@ def main():
             break
         print("  That folder does not exist.")
     out_dir = input("Output folder [default: <bout folder>/motivation_output_v3]: ").strip().strip("'\"")
-    out_dir = out_dir or os.path.join(bout_dir, "motivation_output_v3")
+    out_dir = out_dir or os.path.join(bout_dir, "bout_and_preference_output")
     group_file = input("Group file (key, housing, food_state) -- press Enter to skip group statistics: ")
     group_file = group_file.strip().strip("'\"") or None
     while True:
