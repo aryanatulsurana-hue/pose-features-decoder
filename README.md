@@ -7,8 +7,7 @@ Analysis code accompanying the manuscript:
 
 Adult male CD-1 mice, group-housed (GH) or single-housed (SH), were tested in the SFPT either fed ad libitum (AL) or after 16 h of food deprivation (FD). Behaviour was tracked with DeepLabCut, converted into per-frame and per-animal features, and analysed for (i) microstructure of approach, orientation and engagement, (ii) time courses across the 10-min session, (iii) cross-validated decoding of feeding state and housing condition, and (iv) Zif268 immunofluorescence across the SFPT, social-only (ST) and food-only (FT) tests.
 
-The four experimental groups are labelled `GH AL`, `GH FD`, `SH AL` and `SH FD` throughout the code.
-
+The four experimental groups are labelled `GH AL`, `GH FD`, `SH AL` and `SH FD` throughout the code (`GHAL`, `GHFD`, `SHAL`, `SHFD` in the two bout scripts, see Usage 9).
 ---
 
 ## Contents
@@ -86,13 +85,11 @@ Pose estimation itself used DeepLabCut v3.0.0rc9 and is not needed to run the co
 
 ## Input data
 
-Most scripts expect the following (paths are set in the configuration cell at the top of each notebook or script):
-
-The two bout scripts (`roi_bout_analysis.py`, `bout_and_preference_analysis_time.py`) are interactive and ask for their paths when run.
+Most scripts expect the following (paths are set in the configuration cell at the top of each notebook or script). The two bout scripts (`roi_bout_analysis.py`, `bout_and_preference_analysis_time.py`) are interactive and ask for their paths when run.
 
 | Input | Used by | Description |
 |---|---|---|
-| `all_augmented_csv/results_with_vertices/*.csv` | distance, transitions, polar, time-course notebooks, roi_bout_analysis.py | Per-frame tracking output, 25 fps. Columns used include `centroid_x_final` / `center_x_final`, `centroid_y_final` / `center_y_final`, speed columns (`speed_px_per_frame`, `speed_cm_per_frame`, or the per-second equivalents), `in_SC`, `in_FC`, `abs_angle_to_SS`, `abs_angle_to_FS`, `signed_angle_to_SS`, `signed_angle_to_FS` . For `roi_bout_analysis.py`: ROI polygons in `all_roi_vertices` and/or `roi_<NAME>_vertices`, coordinates as `<bodypart>_x_final` / `<bodypart>_y_final`, and optionally `nose_quality` / `center_quality`|
+| `all_augmented_csv/results_with_vertices/*.csv` | distance, transitions, polar, time-course notebooks, `roi_bout_analysis.py` | Per-frame tracking output, 25 fps. Columns used include `centroid_x_final` / `center_x_final`, `centroid_y_final` / `center_y_final`, speed columns (`speed_px_per_frame`, `speed_cm_per_frame`, or the per-second equivalents), `in_SC`, `in_FC`, `abs_angle_to_SS`, `abs_angle_to_FS`, `signed_angle_to_SS`, `signed_angle_to_FS`. For `roi_bout_analysis.py`: ROI polygons in `all_roi_vertices` and/or `roi_<NAME>_vertices`, coordinates as `<bodypart>_x_final` / `<bodypart>_y_final`, and optionally `nose_quality` / `center_quality`|
 | `housing_food_condition.xlsx` | polar, time-course notebooks | Master sheet. First sheet with columns `Video`, `Treatment` (`GH AL`, `GH FD`, `SH AL`, `SH FD`), `Housing`, `Food` |
 | `Figure1_master.csv` | `transition_probabilities.ipynb` | Master sheet with video names and treatment labels (optional but recommended) |
 | `approach_speed_summary_all_radii.csv` | `paired_approach_vs_baseline_velocity.ipynb` | One row per video, stimulus and interaction radius, with `approach_speed_SS/FS` and `baseline_speed_SS/FS` |
@@ -297,7 +294,7 @@ Figure and model options (fixed preference y-axis of −1 to +1, shared duration
 | Fig. 2B,C (approach speed vs baseline) | `paired_approach_vs_baseline_velocity.ipynb` |
 | Fig. 2E–J (orientation index, polar plots, facing) | `02_plot_polar_angles_and_absolute_angle_boxplots.ipynb` |
 | Fig. 2K,L (preference and bout-duration time courses) | `bout_and_preference_analysis_time.py`, after `roi_bout_analysis.py` |
-| Fig. 2M (time courses of bouts and orientation) | `time_course_for_oi_v3.ipynb` (orientation); approach-speed analogue in `time_course_speed_v2.ipynb` |
+| Fig. 2M (time courses of orientation) | `time_course_for_oi_v3.ipynb` (orientation); approach-speed analogue in `time_course_speed_v2.ipynb` |
 | Fig. 3 (decoding) | `sfpt_decoder_final.py` (A–D), `sfpt_boris_decoder.py` (E–H) |
 | Fig. 4 / Zif268 | `zif268_atlas_heatmaps_v2.ipynb` (atlas visualisation); box plots were made in GraphPad Prism |
 
