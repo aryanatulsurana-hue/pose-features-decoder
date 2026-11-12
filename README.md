@@ -21,7 +21,8 @@ The four experimental groups are labelled `GH AL`, `GH FD`, `SH AL` and `SH FD` 
 | `paired_approach_vs_baseline_velocity.ipynb` | notebook | Paired comparison of approach vs baseline speed toward the social and food stimulus per treatment group |
 | `time_course_speed_v2.ipynb` | notebook | 60-s binned approach-speed time course, per-video fits, and treatment × time GEE / mixed-model tests |
 | `time_course_for_oi_v3.ipynb` | notebook | 60-s binned orientation-index and facing time course, same statistical framework as above |
-| `bout_and_preference_analysis_time.py` | script | Per-animal bout and preference metrics from chamber/zone bout tables, 2 × 2 (housing × feeding state) statistics, and time-binned preference and bout-duration analysis (mixed models and GEE) |
+| `roi_bout_analysis.py` | script | Converts per-frame tracking CSVs into bout tables (SS / FS / SC / FC / Neutral) and ethogram plots, one set per video |
+| `bout_and_preference_analysis_time.py` | script | Per-animal bout and preference metrics from the bout tables, 2 × 2 (housing × feeding state) statistics, and time-binned preference and bout-duration analysis (mixed models and GEE) |
 | `sfpt_decoder_final.py` | script | Random-forest decoders on pose-derived features (feeding state, housing, 4-class) and main/supplementary figures |
 | `sfpt_boris_decoder.py` | script | Same decoding pipeline on manually scored (BORIS) measures only, with optional overlay on the pose-based results |
 | `zif268_atlas_heatmaps_v2.ipynb` | notebook | One-way ANOVA + Tukey across SFPT/ST/FT per region and group, with compact letters, drawn on Allen Mouse Brain Atlas coronal sections |
@@ -44,6 +45,13 @@ SFPT videos ──► DeepLabCut (8 key points) ──► per-frame "augmented" 
                          per-animal feature sheets (Excel, one tab per feature family)
                                             ▼
                       sfpt_decoder_final.py / sfpt_boris_decoder.py
+
+
+augmented CSVs ──► roi_bout_analysis.py ──► bout tables (SS / FS / SC / FC / Neutral)
+                                                        │
+                                                        ▼
+                                      bout_and_preference_analysis_time.py
+
 
 Zif268 counts (Excel) ──► zif268_atlas_heatmaps_v2.ipynb
 ```
@@ -80,16 +88,25 @@ Pose estimation itself used DeepLabCut v3.0.0rc9 and is not needed to run the co
 
 Most scripts expect the following (paths are set in the configuration cell at the top of each notebook or script):
 
+The two bout scripts (`roi_bout_analysis.py`, `bout_and_preference_analysis_time.py`) are interactive and ask for their paths when run.
+
 | Input | Used by | Description |
 |---|---|---|
-| `all_augmented_csv/results_with_vertices/*.csv` | distance, transitions, polar, time-course notebooks | Per-frame tracking output, 25 fps. Columns used include `centroid_x_final` / `center_x_final`, `centroid_y_final` / `center_y_final`, speed columns (`speed_px_per_frame`, `speed_cm_per_frame`, or the per-second equivalents), `in_SC`, `in_FC`, `abs_angle_to_SS`, `abs_angle_to_FS`, `signed_angle_to_SS`, `signed_angle_to_FS` |
+| `all_augmented_csv/results_with_vertices/*.csv` | distance, transitions, polar, time-course notebooks, roi_bout_analysis.py | Per-frame tracking output, 25 fps. Columns used include `centroid_x_final` / `center_x_final`, `centroid_y_final` / `center_y_final`, speed columns (`speed_px_per_frame`, `speed_cm_per_frame`, or the per-second equivalents), `in_SC`, `in_FC`, `abs_angle_to_SS`, `abs_angle_to_FS`, `signed_angle_to_SS`, `signed_angle_to_FS` . For `roi_bout_analysis.py`: ROI polygons in `all_roi_vertices` and/or `roi_<NAME>_vertices`, coordinates as `<bodypart>_x_final` / `<bodypart>_y_final`, and optionally `nose_quality` / `center_quality`|
 | `housing_food_condition.xlsx` | polar, time-course notebooks | Master sheet. First sheet with columns `Video`, `Treatment` (`GH AL`, `GH FD`, `SH AL`, `SH FD`), `Housing`, `Food` |
 | `Figure1_master.csv` | `transition_probabilities.ipynb` | Master sheet with video names and treatment labels (optional but recommended) |
 | `approach_speed_summary_all_radii.csv` | `paired_approach_vs_baseline_velocity.ipynb` | One row per video, stimulus and interaction radius, with `approach_speed_SS/FS` and `baseline_speed_SS/FS` |
 | `All_data_for_the_MS.xlsx` | both decoder scripts | One animal per row, one tab per feature family (see below) |
 | `IHC_effect_size_analysis.xlsx`, sheet `Raw IHC extracted` | `zif268_atlas_heatmaps_v2.ipynb` | One row per animal: group, region, context (SFPT / ST / FT) and % Zif268+ cells |
+| Start-frame file (`.xlsx` / `.csv`, optional) | `roi_bout_analysis.py` | One row per video: a video column (`Video file`, `Movie`, `Video`, `File` or `Filename`) and a start-frame column (`Start frame` or `Start`) |
+| Group / master file (`.xlsx` / `.csv`, optional) | `roi_bout_analysis.py` | Video key plus `housing` and `food_state` (or a ready-made `group` column); used only to sort outputs into one folder per group |
+| `<key>_bouts_detailed.csv` | `bout_and_preference_analysis_time.py` | Output of `roi_bout_analysis.py`. One row per bout with columns `roi` (`SS`, `FS`, `SC`, `FC`, `Neutral`), `start_time_s`, `end_time_s` |
+| `<key>_bouts_collapsed_SC_FC_Neutral.csv` | `bout_and_preference_analysis_time.py` | Output of `roi_bout_analysis.py`. Same format, states `SC`, `FC`, `Neutral` only. Every key needs both files; keys with only one are skipped with a warning |
+| Group file (`.csv` / `.xlsx`) | `bout_and_preference_analysis_time.py` | One row per key with columns `key`, `housing` (`GH` / `SH`), `food_state` (`AL` / `FD`). Keys must be unique |
 
 **File naming.** Per-frame CSVs are matched to the master sheet by video name: `aug_<video>…csv` is matched to the longest `Video` entry that the name starts with.
+
+For the bout scripts, a *key* (e.g. `MVI_0006_roi1`) is one animal and one 600-s window. It is the file-name prefix before `DLC` in the tracking CSV and before `_bouts_detailed.csv` in the bout tables, and it must match the `key` column of the group file. Nothing is averaged or merged across keys.
 
 **Decoder workbook layout** (`All_data_for_the_MS.xlsx`, tab positions are 1-based):
 
@@ -187,6 +204,88 @@ Edit the **Settings** cell (`RAW_XLSX`, `RAW_SHEET`, `GROUPS`, `ACRONYM`, `SECTI
 
 The manuscript additionally uses Welch's ANOVA with Games–Howell where variances are unequal; that step is not implemented in this notebook.
 
+### 8. Bout extraction (`roi_bout_analysis.py`)
+
+```bash
+python roi_bout_analysis.py
+```
+
+The script is interactive and prompts for:
+
+1. the folder with the tracking CSVs and an output folder (default `<input folder>/roi_bout_output`),
+2. the frame rate (default 25 fps),
+3. optionally, new values for the grace period, gap-fraction threshold and analysis window,
+4. which body part(s) define "inside an ROI" for each region, and the rule: `cascade` (first body part with a valid coordinate), `any`, `all` or `single`,
+5. a start-frame file, or whether to enter start frames manually or analyse the whole CSV,
+6. optionally, a group file to sort outputs into one folder per group.
+
+ROI polygons are read from each CSV, so no separate ROI files are needed.
+
+**Method.** Each frame is assigned to one state: `SS` / `FS` (small stimulus zones), `SC` / `FC` (chambers) or `Neutral`. If a frame is inside several regions, the small stimulus zone wins over the chamber. Exits of ≤ 10 frames (`GRACE_FRAMES`) are absorbed into the surrounding bout. The analysed window is 15,000 frames (10 min at 25 fps) from the start frame. A bout is flagged `low_tracking_quality` if more than 50% of its frames are gap frames in the `nose` or `center` tracking.
+
+**Outputs** (per video, named by the key, e.g. `MVI_0006_roi1`)
+
+| File | Content |
+|---|---|
+| `<key>_bouts_detailed.csv` | Bouts in the states `SS`, `FS`, `SC`, `FC`, `Neutral`, with start and end frame and time, duration, previous and next state, % gap frames, tracking-quality flag and truncation flags |
+| `<key>_bouts_collapsed_SC_FC_Neutral.csv` | Same, with `SS` merged into `SC` and `FS` into `FC` |
+| `<key>_ethogram.png` | Timeline strip with the time spent in each region (titled with the group name if a group file was given) |
+| `run_report.csv` | One row per video: group, status (processed / skipped / failed), start frame, number of bouts and any flags |
+
+If you give a group file, outputs are sorted into one subfolder per group (`GHAL/`, `GHFD/`, …; keys not found go to `UNASSIGNED/`). `bout_and_preference_analysis_time.py` reads bout CSVs from a single folder, so either skip the group file or copy the bout CSVs into one folder before running it.
+
+### 9. Bout and preference analysis (`bout_and_preference_analysis_time.py`)
+
+```bash
+python bout_and_preference_analysis_time.py
+```
+
+The script is interactive and prompts for:
+
+1. the folder with the bout CSVs from `roi_bout_analysis.py` (all in one folder),
+2. an output folder (default `<bout folder>/bout_and_preference_output`),
+3. the group file (press Enter to skip all group statistics and only write per-animal tables),
+4. the time-bin length in seconds (default 60).
+
+The script can also be called from Python with `run_pipeline(bout_dir, out_dir, group_file, bin_seconds=...)`.
+
+**Group labels.** Unlike the other scripts, this one does not read a `Treatment` column. It builds the four groups from two columns of the group file, `housing` (`GH` / `SH`) and `food_state` (`AL` / `FD`), and refers to them as `GHAL`, `GHFD`, `SHAL` and `SHFD` (no space) in its output tables. Figure legends use the `GH AL` style.
+
+**Per-animal metrics** (`animal_metrics.csv`)
+
+| Metric | Meaning |
+|---|---|
+| `p_choose_fc`, `n_choice_points` | Share of exits from the Neutral zone that go to the food chamber, and the number of such exits |
+| `history_phi` (+ `chi2`, `p`) | Whether the previous chamber predicts the next one |
+| `ss_*` / `fs_*` bout metrics | Number of bouts, mean duration, first- and second-half mean duration, within-session slope |
+| `pref_bin_slope`, `ss_/fs_logdur_bin_slope` | Change in preference and in log bout duration across time bins |
+
+**Time bins.** Bins start at the beginning of each animal's window. A window up to 1 s shorter than a whole number of bins still gets that last bin (`BIN_END_TOLERANCE_S`). A longer window has its remainder added to the last bin, so no data are dropped. Per bin:
+
+- **Preference index** = (SS time − FS time) / (SS time + FS time), using stimulus-zone time only (+1 = social, −1 = food). It is `NaN` if the animal spent no time in either zone.
+- **Mean bout duration** of SS and FS bouts that *start* in the bin (`NaN` if none started).
+
+**Statistics**
+
+- *Group effects:* 2 × 2 ANOVA (Type II, housing × food state) per metric, with assumption checks, HC3-robust and permutation p-values (5,000 permutations), Benjamini–Hochberg q-values, an outlier sensitivity test (|studentized residual| > 3), and four planned comparisons (Welch *t*-test, Holm correction). Durations are analysed on the log scale and counts as log(1 + x). A metric is tested only if each of the four groups has ≥ 5 animals; the others are listed in `metrics_not_tested.csv`. `history_phi` also gets a weighted (WLS) sensitivity test weighted by `n_choice_points`.
+- *Time courses:* mixed models and GEE (`housing × food state × time`, animals as clusters). Preference uses a Gaussian family, bout durations a Gamma family with log link. The working correlation is exchangeable (a QIC comparison with AR(1) is saved). Covariance is the bias-reduced (Mancl–DeRouen) sandwich estimator, falling back to the robust one. Sensitivity analyses: preference restricted to bins with ≥ 5 s in SS + FS, and durations at the individual-bout level.
+
+**Outputs** (in the output folder)
+
+| File | Content |
+|---|---|
+| `animal_metrics.csv`, `binned_long.csv` | Per-animal metrics and one row per animal per bin (merged with group labels) |
+| `analysis_settings.json` | All upper-case parameters used for the run |
+| `group_2x2_anova.csv`, `assumption_checks.csv`, `planned_comparisons.csv`, `outlier_sensitivity.csv`, `metrics_not_tested.csv` | Group statistics |
+| `timecourse_mixed_models.csv`, `timecourse_bin_comparisons.csv`, `timecourse_crosscheck.csv` | Mixed-model time-course results and a cross-check against the per-animal slope ANOVA |
+| `timecourse_gee_model.csv`, `…_slopes.csv`, `…_slope_contrasts.csv`, `…_time_shape_qic.csv` | GEE coefficients, per-group slopes, slope contrasts and time-shape comparison |
+| `timecourse_<response>_points.{png,pdf}`, `timecourse_<response>_GEE.{png,pdf}` | Group means ± SEM per bin, without and with GEE fit and 95% band, for the preference index and SS / FS bout duration |
+| `group_plots/` | One boxplot per tested metric (`<metric>.png`) with individual animals, n per group and the housing / food / interaction p-values |
+| `diagnostics/` | Residual QQ and residuals-vs-fitted plots for each ANOVA (`<metric>_diagnostics.png`) and for each time-course mixed model (`timecourse_<response>_diagnostics.png`) |
+| `per_key/` | Per-animal summary PNG and choice-point CSV |
+
+Figure and model options (fixed preference y-axis of −1 to +1, shared duration y-axis, GEE line span, error bars, minimum animals per point) are set in the `TUNABLE PARAMETERS` block at the top of the script.
+
 ---
 
 ## Relationship to the manuscript
@@ -197,7 +296,8 @@ The manuscript additionally uses Welch's ANOVA with Games–Howell where varianc
 | Fig. 1I (total distance) | `total_distance_travelled.py` |
 | Fig. 2B,C (approach speed vs baseline) | `paired_approach_vs_baseline_velocity.ipynb` |
 | Fig. 2E–J (orientation index, polar plots, facing) | `02_plot_polar_angles_and_absolute_angle_boxplots.ipynb` |
-| Fig. 2L,M (time courses of bouts and orientation) | `time_course_for_oi_v3.ipynb` (orientation); approach-speed analogue in `time_course_speed_v2.ipynb` |
+| Fig. 2K,L (preference and bout-duration time courses) | `bout_and_preference_analysis_time.py`, after `roi_bout_analysis.py` |
+| Fig. 2M (time courses of bouts and orientation) | `time_course_for_oi_v3.ipynb` (orientation); approach-speed analogue in `time_course_speed_v2.ipynb` |
 | Fig. 3 (decoding) | `sfpt_decoder_final.py` (A–D), `sfpt_boris_decoder.py` (E–H) |
 | Fig. 4 / Zif268 | `zif268_atlas_heatmaps_v2.ipynb` (atlas visualisation); box plots were made in GraphPad Prism |
 
@@ -213,6 +313,7 @@ Statistics reported in the paper that were run in GraphPad Prism (ANOVAs, Tukey 
 - Sample sizes: GH-AL n = 10, GH-FD n = 10, SH-AL n = 11, SH-FD n = 18 (49 mice in total; one observation per mouse in the decoders).
 - Frame rate is 25 fps; the test window is 10 min (15,000 frames).
 - Several notebooks contain hard-coded relative paths in their configuration cells. Adjust these to your folder layout.
+- The permutation tests in `bout_and_preference_analysis_time.py` use `PERM_SEED = 12345` and 5,000 permutations. All settings of a run are saved to `analysis_settings.json`.
 
 ---
 
