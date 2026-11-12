@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-SFPT motivation analysis
-========================
+SFPT bout and preference analysis
+=================================
 Turns the bout tables produced by ``roi_bout_analysis.py`` into per-animal
-motivation metrics, compares the four groups (SHAL, SHFD, GHAL, GHFD) with a
-2x2 (Housing x Food state) design, and analyses how behaviour changes across
-the session in time bins.
+bout and preference metrics, compares the four groups (SHAL, SHFD, GHAL, GHFD)
+with a 2x2 (Housing x Food state) design, and analyses how behaviour changes
+across the session in time bins. Contributes to Fig. 2K,L of the manuscript.
 
 Unit of analysis
     One KEY (e.g. ``MVI_0006_roi1``) = one animal = one 600 s window.
@@ -16,6 +16,8 @@ Input (per key, all in one folder)
     <key>_bouts_collapsed_SC_FC_Neutral.csv   states SC, FC, Neutral
 Group file (csv/xlsx)
     columns: key, housing (GH/SH), food_state (AL/FD)
+    (the four groups are built from these two columns and are called
+    SHAL, SHFD, GHAL, GHFD in the output tables)
 
 Per-animal metrics
     p_choose_fc, n_choice_points             choice split at Neutral exits
@@ -42,8 +44,9 @@ Figure options (see the TUNABLE PARAMETERS block)
     share one y-axis; GEE line runs from the first to the last bin centre.
 
 Usage
-    bout_and_preference_analysis_time.py
-    (prompts for the bout folder, output folder, group file and bin length)
+    python bout_and_preference_analysis_time.py
+    (prompts for the bout folder, output folder, group file and bin length;
+    default output folder: <bout folder>/bout_and_preference_output)
 
 Requires: numpy, pandas, scipy, matplotlib, statsmodels (and openpyxl for .xlsx)
 """
