@@ -21,6 +21,7 @@ The four experimental groups are labelled `GH AL`, `GH FD`, `SH AL` and `SH FD` 
 | `paired_approach_vs_baseline_velocity.ipynb` | notebook | Paired comparison of approach vs baseline speed toward the social and food stimulus per treatment group |
 | `time_course_speed_v2.ipynb` | notebook | 60-s binned approach-speed time course, per-video fits, and treatment × time GEE / mixed-model tests |
 | `time_course_for_oi_v3.ipynb` | notebook | 60-s binned orientation-index and facing time course, same statistical framework as above |
+| `bout_and_preference_analysis_time.py` | script | Per-animal bout and preference metrics from chamber/zone bout tables, 2 × 2 (housing × feeding state) statistics, and time-binned preference and bout-duration analysis (mixed models and GEE) |
 | `sfpt_decoder_final.py` | script | Random-forest decoders on pose-derived features (feeding state, housing, 4-class) and main/supplementary figures |
 | `sfpt_boris_decoder.py` | script | Same decoding pipeline on manually scored (BORIS) measures only, with optional overlay on the pose-based results |
 | `zif268_atlas_heatmaps_v2.ipynb` | notebook | One-way ANOVA + Tukey across SFPT/ST/FT per region and group, with compact letters, drawn on Allen Mouse Brain Atlas coronal sections |
